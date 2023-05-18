@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Form, Button, Row, Col } from "react-bootstrap";
 import FormContainer from "../components/FormContainer";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useRegisterMutation } from "../slices/usersApiSlice";
+import { toast } from "react-toastify";
+import { setCredentials } from "../slices/authSlice";
 
 const RegisterScreen = () => {
     const [email, setEmail] = useState("");
@@ -9,11 +14,34 @@ const RegisterScreen = () => {
     const [name, setName] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const { userInfo } = useSelector((state) => state.auth);
+    const [register, { isLoading }] = useRegisterMutation();
+
+    useEffect(() => {
+        if (userInfo) {
+            navigate("/ ");
+        }
+    }, [userInfo, navigate]);
+
     const submitHandler = async (e) => {
         e.preventDefault();
 
-        console.log("submit");
+        if (password !== confirmPassword) {
+            toast.error("Passwords do not match.");
+        } else {
+            try {
+                const res = await register({ email, name, password }).unwrap();
+                dispatch(setCredentials({ ...res }));
+                navigate("/");
+            } catch (err) {
+                toast.error(err?.data?.message || err?.error);
+            }
+        }
     };
+
     return (
         <FormContainer>
             <h1>Sign Up</h1>
@@ -58,8 +86,13 @@ const RegisterScreen = () => {
                     ></Form.Control>
                 </Form.Group>
 
-                <Button type="submit" variant="primary" className="mt-3">
-                    Sign Up
+                <Button
+                    disabled={isLoading}
+                    type="submit"
+                    variant="primary"
+                    className="mt-3"
+                >
+                    {isLoading ? "Signing up..." : "Sign Up"}
                 </Button>
 
                 <Row className="py-3">
