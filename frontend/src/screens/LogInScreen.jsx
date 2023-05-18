@@ -60,8 +60,13 @@ const LogInScreen = () => {
                     ></Form.Control>
                 </Form.Group>
 
-                <Button type="submit" variant="primary" className="mt-3">
-                    Sign In
+                <Button
+                    disabled={isLoading}
+                    type="submit"
+                    variant="primary"
+                    className="mt-3"
+                >
+                    {isLoading ? "Singing in.." : "Sign In"}
                 </Button>
 
                 <Row className="py-3">
